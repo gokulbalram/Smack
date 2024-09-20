@@ -1,0 +1,1 @@
+I work in an environment where we have a good mix of MacOS and Windows devices, and I am tired of not having airdrop, or having to tell my coworkers which exact folder I pasted my stuff in on the server, so here is this ChatGPT shitshot
