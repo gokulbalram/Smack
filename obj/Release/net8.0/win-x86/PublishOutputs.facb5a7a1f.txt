@@ -1,0 +1,2 @@
+C:\Users\pc\Desktop\IMPORTANT SW\FIleTransfer App\FileTransferTest\FileTransferTest\bin\Release\net8.0\publish\win-x86\FileTransferTest.pdb
+C:\Users\pc\Desktop\IMPORTANT SW\FIleTransfer App\FileTransferTest\FileTransferTest\bin\Release\net8.0\publish\win-x86\FileTransferTest.exe
