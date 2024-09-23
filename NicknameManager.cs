@@ -1,73 +1,71 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+public class NicknameData
+{
+    public string HostNickname { get; set; }
+}
 
 public class NicknameManager
 {
-    private const string NicknameFilePath = "nickname.json";
-    public string Nickname { get; private set; }
-    private string receiverIPAddress;
+    private const string NicknameFilePath = "hostname.json";
+    private bool verbose;
+    public string HostNickname { get; private set; }
 
-    public NicknameManager()
+    public NicknameManager(bool verboseMode)
     {
+        verbose = verboseMode;
         LoadNickname();
     }
 
     public void SetNickname(string nickname)
     {
-        Nickname = nickname;
+        HostNickname = nickname;
         SaveNickname();
-        receiverIPAddress = GetIPAddressByNickname(nickname);
+        if (verbose)
+        {
+            Console.WriteLine($"[DEBUG] Nickname set to: {HostNickname}");
+        }
     }
 
-    public void LoadNickname()
+    private void LoadNickname()
     {
         if (File.Exists(NicknameFilePath))
         {
-            string json = File.ReadAllText(NicknameFilePath);
-            Nickname = json;
+            var json = File.ReadAllText(NicknameFilePath);
+            var data = JsonSerializer.Deserialize<NicknameData>(json, NicknameManagerContext.Default.NicknameData);
+            HostNickname = data?.HostNickname;
+
+            if (verbose)
+            {
+                Console.WriteLine($"[DEBUG] Loaded nickname from file: {HostNickname}");
+            }
         }
         else
         {
-            Nickname = null;
+            if (verbose)
+            {
+                Console.WriteLine("[DEBUG] No nickname file found. Starting fresh.");
+            }
         }
     }
 
     private void SaveNickname()
     {
-        File.WriteAllText(NicknameFilePath, Nickname);
-    }
+        var data = new NicknameData { HostNickname = HostNickname };
+        var json = JsonSerializer.Serialize(data, NicknameManagerContext.Default.NicknameData);
+        File.WriteAllText(NicknameFilePath, json);
 
-    public void InformIfNoNickname()
-    {
-        if (string.IsNullOrEmpty(Nickname))
+        if (verbose)
         {
-            Console.WriteLine("Nickname not set. Using local IP address instead.");
-            receiverIPAddress = GetLocalIPAddress();
+            Console.WriteLine($"[DEBUG] Nickname saved to file: {NicknameFilePath}");
         }
     }
+}
 
-    public string GetReceiverIPAddress()
-    {
-        return receiverIPAddress ?? GetLocalIPAddress();
-    }
-
-    public string GetIPAddressByNickname(string nickname)
-    {
-        return GetLocalIPAddress();
-    }
-
-    private string GetLocalIPAddress()
-    {
-        var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList)
-        {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
-                return ip.ToString();
-            }
-        }
-        throw new Exception("No network adapters with an IPv4 address in the system!");
-    }
+[JsonSerializable(typeof(NicknameData))]
+public partial class NicknameManagerContext : JsonSerializerContext
+{
 }

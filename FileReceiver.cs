@@ -1,14 +1,15 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
 public class FileReceiver
 {
+    private static bool verbose = false; // Control verbose mode
+
     public static async Task StartListening(string saveDirectory, int port = 8080)
     {
-        TcpListener listener = new TcpListener(IPAddress.Any, port);
+        TcpListener listener = new TcpListener(System.Net.IPAddress.Any, port);
         listener.Start();
         Console.WriteLine($"Listening for incoming files in: {saveDirectory}...");
 
@@ -23,6 +24,11 @@ public class FileReceiver
 
             string fullPath = Path.Combine(saveDirectory, relativePath);
             string folder = Path.GetDirectoryName(fullPath);
+
+            if (verbose)
+            {
+                Console.WriteLine($"Receiving {Path.GetFileName(fullPath)} on thread ID: {Thread.CurrentThread.ManagedThreadId}");
+            }
 
             if (!Directory.Exists(folder))
             {
@@ -39,5 +45,10 @@ public class FileReceiver
 
             Console.WriteLine($"File received and saved to: {fullPath}");
         }
+    }
+
+    public static void SetVerbose(bool isVerbose)
+    {
+        verbose = isVerbose;
     }
 }

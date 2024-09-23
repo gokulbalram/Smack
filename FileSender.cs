@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public class FileSender
 {
-    private static bool verbose = false;
+    private static bool verbose = false; // Control verbose mode
 
     public static async Task SendFileAsync(string filePath, string relativePath, string ipAddress, int port = 8080)
     {
@@ -21,7 +21,7 @@ public class FileSender
 
             if (verbose)
             {
-                Console.WriteLine($"Sending {Path.GetFileName(filePath)} to {ipAddress}...");
+                Console.WriteLine($"Sending {Path.GetFileName(filePath)} on thread ID: {Thread.CurrentThread.ManagedThreadId}");
             }
 
             byte[] buffer = new byte[1024];
@@ -42,13 +42,12 @@ public class FileSender
     public static async Task SendFolderAsync(string folderPath, string ipAddress, int port = 8080)
     {
         var allFiles = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
-        string relativePathBase = Path.GetFullPath(folderPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-
         List<Task> fileSendTasks = new List<Task>();
+
         foreach (var file in allFiles)
         {
-            string relativePath = file.Substring(relativePathBase.Length).Replace("\\", "/");
-            fileSendTasks.Add(SendFileAsync(file, relativePath, ipAddress));
+            string relativePath = Path.GetRelativePath(Directory.GetParent(folderPath).FullName, file);
+            fileSendTasks.Add(SendFileAsync(file, relativePath, ipAddress, port));
         }
 
         await Task.WhenAll(fileSendTasks);
